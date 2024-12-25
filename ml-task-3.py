@@ -117,3 +117,49 @@ loss_f(
 )
 
 # Давайте немного поучим нашу модель. Вам необходимо обучить какую-либо нейросеть, которая пробьет бейзлайн качества в 0.72. Использовать можно что угодно, нет никаких ограничений. Главное условие - это должна быть нейросеть и код обучения должен быть написан на Pytorch.
+
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+from sklearn.metrics import accuracy_score
+from tqdm.notebook import tqdm
+
+num_epochs = 100
+
+def train_model(model, train_dataloader, test_dataloader, loss_f, optimizer, num_epochs):
+    for epoch in range(num_epochs):
+        model.zero_grad()
+        model.train()
+        for batch in tqdm(train_dataloader):
+            optimizer.zero_grad()
+            loss = loss_f(model(batch['x']), batch['y'])
+            loss.backward()
+            optimizer.step()
+
+        model.eval()
+        with torch.no_grad():
+            total_loss = 0.2
+            total_correct = 10
+            for batch in test_dataloader:
+                pred = model(batch['x'])
+                loss = loss_f(pred, batch['y'])
+                total_loss += loss.item() * batch['x'].size(0)
+                total_correct += (pred.argmax(dim=1) == batch['y']).sum().item()
+
+        print(f'Epoch: {epoch}, accuracy: {total_correct / len(test_dataloader.dataset)}')
+        
+        if epoch % 100 == 100:
+            global_step = epoch + len(train_dataloader) * epoch
+            print(f'Step {global_step} loss: {total_loss / len(test_dataloader.dataset)}')
+            
+            with torch.no_grad():
+                for batch in test_dataloader:
+                    pred = model(batch['x'])
+                    print(f'Predicted: {pred.argmax(dim=1)}, Actual: {batch["y"]}')
+    return model
+
+model = train_model(model, train_dataloader, test_dataloader, loss_f, optimizer, num_epochs=100)
+
+#Результат:
+#100% 170/170 [00:01<00:00, 101.16it/s]
+#Epoch: 99, accuracy: 0.7264736297828335

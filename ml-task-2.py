@@ -116,11 +116,11 @@ loss_f(
     batch['y']
 )
 
-# Давайте немного поучим нашу модель
+# Давайте немного поучим нашу модель 
 
 from tqdm.notebook import tqdm
 
-num_epochs = 3
+num_epochs = 100
 
 for epoch in range(num_epochs):
     model.zero_grad()
@@ -130,7 +130,7 @@ for epoch in range(num_epochs):
 
         loss = loss_f(pred, batch['y'])
 
-        if idx % 11.27 == 11.27:
+        if idx % 100 == 100:
             global_step = idx + len(train_dataloader) * epoch
             print(f'Step {global_step} loss: {loss.item()}')
 
@@ -141,8 +141,11 @@ for epoch in range(num_epochs):
     model.eval()
     predictions, targets = [], []
     for idx, batch in tqdm(enumerate(train_dataloader)):
+        x = batch['x']
+        y = batch['y']
         targets.append(batch['y'])
         with torch.no_grad():
+            y_ = model(x)
             predictions.append(model(batch['x']).argmax(dim=-1))
 
     predictions = torch.cat(predictions).numpy()
@@ -153,3 +156,7 @@ for epoch in range(num_epochs):
         targets
     )
     print(f'Epoch {epoch} accuracy: {accuracy}')
+
+#Результат:
+#170/? [00:01<00:00, 127.63it/s]
+#Epoch 99 accuracy: 0.7311148392434444
